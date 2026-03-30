@@ -1,0 +1,50 @@
+services: 
+  flowable-db:
+    build: ./postgresql
+    ports:
+      - 5432:5432
+    volumes:
+      - data_db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_MULTIPLE_DATABASES=keycloak,internal
+      - POSTGRES_DB=flowable
+      - POSTGRES_USER=flowable
+      - POSTGRES_PASSWORD=flowable
+  openldap:
+    build:
+      context: openldap
+    environment:
+      LDAP_ORGANISATION: "Flowable Global Sales"
+      LDAP_DOMAIN: "global-sales.flowable.com"
+      LDAP_ADMIN_PASSWORD: "test"
+    ports:
+      - 389:389
+    volumes:
+      - data_ldap:/var/lib/ldap
+      - data_slapd:/etc/ldap/slapd.d
+  keycloak:
+    image: keycloak/keycloak:20.0.0
+    # build:
+    #   context: keycloak
+    environment:
+      DB_DATABASE: keycloak
+      DB_ADDR: flowable-db
+      DB_USER: flowable
+      DB_PASSWORD: flowable
+      DB_VENDOR: postgres
+      # KEYCLOAK_URL: "https://vigilant-fortnight-q7g9q4pq57f9xx5-9095.app.github.dev/"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: test
+      # See https://github.com/keycloak/keycloak-containers/blob/master/server/README.md
+      # KEYCLOAK_IMPORT: /tmp/oauth2-stack-realm.json
+      CUSTOM_REALM_KEYCLOAK_HOSTNAME: "https://vigilant-fortnight-q7g9q4pq57f9xx5-9095.app.github.dev/"
+      CUSTOM_REALM_LDAP_URI: "ldap://openldap:389"
+    command: ["start-dev"]
+    ports:
+      - 9095:8080
+    depends_on:
+      - flowable-db
+volumes:
+  data_db:
+  data_ldap:
+  data_slapd:

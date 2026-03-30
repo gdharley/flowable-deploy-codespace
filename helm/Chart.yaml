@@ -1,0 +1,14 @@
+apiVersion: v2
+name: flowable-deployment-template
+description: A Helm chart for Flowable using Kubernetes
+
+type: application
+
+version: 1.0.0
+
+appVersion: "0.0.1"
+
+dependencies:
+  - name: flowable
+    version: 2025.1.05
+    repository: https://repo.flowable.com/flowable-helm

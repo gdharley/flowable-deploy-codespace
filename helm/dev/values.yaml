@@ -1,0 +1,161 @@
+flowable:
+  ingress:
+  #     # Enable/disbale the ingress configuration for the Helm chart.
+    enabled: false
+  #   # Define if https should be used to access the service urls (this is highly suggested)
+  #   tls: true
+  #   # Ingress proxy settings in case of custom frontend (CORS)
+  #   allowOriginEnabled: true
+  #   allowOriginUrl: "*"
+  #   domain: projects.flowable.io
+  #   bodySize: "20m"
+  #   ingressClass: external
+  openldap:
+    enabled: false
+  
+  keycloak:
+    enabled: false
+    
+  postgres:
+    enabled: false
+    # primary:
+    #   extraEnvVars:
+    #     - name: POSTGRESQL_MAX_CONNECTIONS
+    #       value: "400"
+    #   resources:
+    #     requests:
+    #       cpu: "500m"
+    #       memory: "1Gi"
+    #     limits:
+    #       cpu: "1"
+    #       memory: "2Gi"
+
+  engage:
+    enabled: false
+
+  work:
+    enabled: true
+    image:
+  #    repository: localhost:5001/myflowable
+      repository: ghcr.io/abretz-mimacom/flowable-models-public
+      # tag: latest
+      tag: 1.15.0
+      # tag: 2025.1.01
+    replicas: 1 # multi-node deployment
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "1.5Gi"
+      limits:
+        cpu: "1000m"
+        memory: "1.5Gi"
+    metrics:
+      enabled: true
+    javaOpts: "-XX:InitialRAMPercentage=70.0 -XX:MaxRAMPercentage=70.0 -XX:MinRAMPercentage=70.0"
+    management:
+      enabled: true
+    envVariables:
+      flowable.inspect.enabled: "true"
+  #    flowable.mail.server.host: greenmail.flowable.svc.cluster.local
+  #    application.kafka-enabled: "true"
+  #    spring.kafka.bootstrap-servers: "10.96.129.107:9092,10.96.119.140:9092,10.96.23.50:9092"
+  #    flowable.mail.server.host: "10.244.0.4"
+  #    flowable.mail.server.port: "3025"
+  #    flowable.mail.server.ssl-port: "3465"
+  #    flowable.mail.server.username: "aaron"
+  #    flowable.mail.server.password: "test"
+  #    flowable.mail.server.default-charset: "UTF-8"
+  #    flowable.mail.server.use-ssl: "false"
+  #    flowable.mail.server.use-tls: "false"
+  #    flowable.mail.server.default-from: "flowable@test.env.com"
+  #    application.ai.type: openai
+  #    spring.ai.openai.api-key: ""
+  #    spring.ai.openai.chat.options.temperature: 0.3
+  #    spring.ai.openai.chat.options.model: gpt-4o
+  #    flowable.mail.server.force-to: "aaron@test.com"
+      flowable.platform.enable-audit-log: "true"
+      management.elastic.metrics.export.enabled: "false"
+      # flowable.async-history.enabled: "true"
+      # flowable.async-executor.activate: "true"
+  #    flowable.indexing.reindexing.database-read.pool.core-size: "8"
+  #    flowable.async-history.thread-pool.max-pool-size: "8"
+  #    flowable.async-history.thread-pool.core-pool-size: "8"
+  #    flowable.async-history.thread-pool.queue-capacity: "8"
+      flowable.indexing.enabled: "false"
+      # extraVolumes:
+      #   - name: additional-classpath
+      #     hostPath:
+      #       path: /Users/aaron.bretz/.m2/repository/org/flowable/jobapplication/0.0.1-SNAPSHOT/
+      #       type: Directory
+      # extraVolumeMounts:
+      #   - name: additional-classpath
+      #     mountPath: /additional-classpath/
+      # initContainers:
+      #   - name: copy-jar
+      #     image: busybox
+      #     command: ["sh", "-c", "cp /jars/my-lib.jar /additional-classpath/"]
+      #     volumeMounts:
+      #       - name: additional-classpath
+      #         mountPath: /additonal-classpath
+      #       - name: jar-source
+      #         mountPath:
+      #     volumeMounts:
+      #       - name: additional-classpath
+      #         mountPath: /additional-classpath/
+      # extraImagePullSecrets: flw-docker-auth
+    storage:
+      provisioner: rancher.io/local-path
+      storageClass: standard
+
+  elasticsearch:
+    enabled: false
+    # nodeGroup: master
+    # master:
+    #   resources:
+    #     requests:
+    #       cpu: 1
+    #       memory: 2048Mi
+    #     limits:
+    #       cpu: 1
+    #       memory: 2048Mi
+
+  design:
+    enabled: true
+    image:
+      # tag: latest
+      tag: 2025.1.01
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "1.5Gi"
+      limits:
+        cpu: "1000m"
+        memory: "1.5Gi"
+    angularVersion: false
+    envVariables:
+        flowable.design.model-locking.enabled: true
+        flowable.design.model-locking.auto-lock-on-create: true
+  #      application.design.ai.type: openai
+  #      spring.ai.openai.api-key: ""
+  #      spring.ai.openai.chat.options.temperature: 0.3
+  #      spring.ai.openai.chat.options.model: gpt-4o
+  #      extraImagePullSecrets: flw-docker-auth
+  #      image:
+  #       repository: artifacts.flowable.com/docker-local/flowable/flowable-design
+
+
+  control:
+    enabled: true
+    image:
+      # tag: latest
+      tag: 2025.1.01
+
+  flowable:
+    dockerAuthSecret: flowable-flowable-regcred
+
+  prometheus:
+    enabled: false
+    monitoring:
+      enabled: true
+      global:
+        namespace: flowable

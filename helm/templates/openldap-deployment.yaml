@@ -1,0 +1,204 @@
+{{- if .Values.openldap.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.openldap.service.name }}
+spec:
+  replicas: {{ .Values.openldap.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Release.Name }}-{{ include "flowable.template" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Release.Name }}-{{ include "flowable.template" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        type: {{ .Release.Name }}-openldap
+      annotations:
+    spec:
+      volumes:
+        - name: openldap-ldap-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-{{ include "flowable.template" . }}-openldap-ldap-storage
+        - name: openldap-sldapd-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-{{ include "flowable.template" . }}-openldap-sldapd-storage
+        - name: openldap-read-only
+          emptyDir: {}
+        - name: openldap-users-config
+          configMap:
+            name: openldap-users
+            items:
+              - key: users.ldif
+                path: users.ldif
+      initContainers:
+        - name: openldap-init-chown
+          image: busybox
+          command: ["sh", "-c", "cat /tmp/ldap-users/users.ldif >> /container/service/slapd/assets/config/bootstrap/ldif/users.ldif" ]
+          volumeMounts:
+            - mountPath: /tmp/ldap-users/users.ldif
+              name: openldap-users-config
+              subPath: users.ldif
+            - mountPath: /container/service/slapd/assets/config/bootstrap/ldif/
+              name: openldap-read-only
+      containers:
+        - name: {{ .Release.Name }}-{{ include "flowable.template" . }}
+          image: "{{ .Values.openldap.image.repository }}:{{ .Values.openldap.image.tag }}"
+          {{- if .Values.openldap.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.openldap.image.pullPolicy }}
+          {{- end }}
+          ports:
+            - containerPort: 389
+          volumeMounts:
+            - mountPath: /var/lib/ldap
+              name: openldap-ldap-data
+            - mountPath: /etc/ldap/slapd.d
+              name: openldap-sldapd-data
+            - name: openldap-read-only
+              mountPath: /container/service/slapd/assets/config/bootstrap/ldif/users.ldif
+              subPath: users.ldif
+          env:
+            - name: LDAP_ORGANISATION
+              valueFrom:
+                configMapKeyRef:
+                  name: openldap-config
+                  key: ldap_organisation
+            - name: LDAP_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: openldap-config
+                  key: ldap_domain
+            - name: LDAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openldap-secret
+                  key: ldap_admin_password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.openldap.service.name }}
+  labels:
+    {{ include "flowable.defaultlabels" . }}
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: {{ .Release.Name }}-{{ include "flowable.template" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: ldap
+      protocol: TCP
+      port: 389
+      targetPort: 389
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openldap-config
+data:
+  ldap_organisation: "{{ .Values.openldap.service.organization }}"
+  ldap_domain: "{{ .Values.openldap.service.domain }}"
+---
+# ConfigMap containing a plaintext LDIF file `users.ldif`.
+# Edit the LDIF below to add initial users. This will be mounted
+# into the container at:
+# `/container/service/slapd/assets/config/bootstrap/ldif/users.ldif`
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openldap-users
+data:
+  users.ldif: |-
+    version: 1
+
+    dn: ou=users,dc=global-sales,dc=flowable,dc=com
+    objectClass: organizationalUnit
+    objectClass: top
+    ou: users
+
+    dn: ou=groups,dc=global-sales,dc=flowable,dc=com
+    objectClass: organizationalUnit
+    objectClass: top
+    ou: groups
+
+    dn: cn=bruce.wayne,ou=users,dc=global-sales,dc=flowable,dc=com
+    objectClass: inetOrgPerson
+    objectClass: organizationalPerson
+    cn: bruce.wayne
+    sn: Wayne
+    givenName: Bruce
+    displayName: Bruce Wayne
+    employeeType: user-admin
+    mail: bruce.wayne@flowable.com
+    ou: bruce-wayne
+    userPassword:: dGVzdAo=
+    memberOf: cn=flowableAdministrator,ou=groups,dc=global-sales,dc=flowable,dc=com
+    memberOf: cn=flowableUser,ou=groups,dc=global-sales,dc=flowable,dc=com
+
+    dn: cn=clark.kent,ou=users,dc=global-sales,dc=flowable,dc=com
+    objectClass: inetOrgPerson
+    objectClass: organizationalPerson
+    cn: clark.kent
+    sn: Kent
+    givenName: Clark
+    displayName: Clark Kent
+    employeeType: user-admin
+    mail: clark.kent@flowable.com
+    ou: clark-kent
+    userPassword:: dGVzdAo=
+    memberOf: cn=flowableAdministrator,ou=groups,dc=global-sales,dc=flowable,dc=com
+    memberOf: cn=flowableUser,ou=groups,dc=global-sales,dc=flowable,dc=com
+
+    dn: cn=flowableAdministrator,ou=groups,dc=global-sales,dc=flowable,dc=com
+    objectClass: groupOfNames
+    objectClass: top
+    cn: flowableAdministrator
+    member: cn=bruce.wayne,ou=users,dc=global-sales,dc=flowable,dc=com
+    member: cn=clark.kent,ou=users,dc=global-sales,dc=flowable,dc=com
+
+    dn: cn=flowableUser,ou=groups,dc=global-sales,dc=flowable,dc=com
+    objectClass: groupOfNames
+    objectClass: top
+    cn: flowableUser
+    member: cn=bruce.wayne,ou=users,dc=global-sales,dc=flowable,dc=com
+    member: cn=clark.kent,ou=users,dc=global-sales,dc=flowable,dc=com
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-{{ include "flowable.template" . }}-openldap-ldap-storage
+  annotations:
+    volume.beta.kubernetes.io/storage-provisioner: {{ .Values.openldap.storage.provisioner }}
+    helm.sh/resource-policy: "keep"
+spec:
+  accessModes:
+    - {{ .Values.openldap.storage.accessModes }}
+  storageClassName: {{ .Values.openldap.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.openldap.storage.size }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-{{ include "flowable.template" . }}-openldap-sldapd-storage
+  annotations:
+    volume.beta.kubernetes.io/storage-provisioner: {{ .Values.openldap.storage.provisioner }}
+    helm.sh/resource-policy: "keep"
+spec:
+  accessModes:
+    - {{ .Values.openldap.storage.accessModes }}
+  storageClassName: {{ .Values.openldap.storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.openldap.storage.size }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openldap-secret
+type: Opaque
+stringData:
+  ldap_admin_password: "{{ .Values.openldap.service.adminPassword }}"
+{{- end }}

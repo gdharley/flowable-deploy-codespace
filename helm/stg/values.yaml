@@ -1,0 +1,172 @@
+global:
+  security:
+    allowInsecureImages: true
+openldap:
+  enabled: false
+  replicas: 1
+  service:
+    name: openldap
+    organization: Flowable Global Sales
+    domain: global-sales.flowable.com
+    adminPassword: test
+  storage:
+    provisioner: rancher.io/local-path
+    size: 3Gi
+    # Comment-out the following 2 lines in case you want bock instead of NFS
+    storageClass: standard
+    accessModes: ReadWriteOnce
+  image:
+    repository: osixia/openldap
+    pullPolicy:
+    tag: 1.5.0
+    #    secret: gitlab-regcred
+keycloak:
+  enabled: true
+  ingress:
+    enabled: true
+  replicas: 1
+  # domainName: login
+  host: supreme-robot-rjxpp4976gq3p96v-80.app.github.dev
+  database:
+    name: keycloak
+  service:
+    name: keycloak
+  image:
+    repository: "localhost:5001/keycloak-global-sales"
+    pullPolicy:
+    tag: "20.0.0"
+    #    secret: gitlab-regcred
+flowable:
+  ingress:
+    # Leave disabled to define our own ingress in templates/
+    enabled: false
+  postgres:
+    enabled: true
+    image:
+      repository: bitnamilegacy/postgresql
+      tag: 17.5.0
+    service:
+      name: postgres
+    envVariables:
+      POSTGRES_MULTIPLE_DATABASES: "keycloak,internal"
+    primary:
+      extraEnvVars:
+        - name: POSTGRESQL_MAX_CONNECTIONS
+          value: "400"
+  engage:
+    enabled: false
+  work:
+    enabled: false
+    image:
+      #    repository: localhost:5001/myflowable
+      # tag: latest
+      tag: 2025.1.01
+    replicas: 1 # multi-node deployment
+    metrics:
+      enabled: true
+    javaOpts: "-XX:InitialRAMPercentage=70.0 -XX:MaxRAMPercentage=70.0 -XX:MinRAMPercentage=70.0"
+    contextPath: /work
+    management:
+      enabled: true
+    envVariables:
+      server.contextPath: /work
+      flowable.inspect.enabled: "true"
+      flowable.platform.enable-audit-log: "true"
+      management.elastic.metrics.export.enabled: "false"
+      flowable.indexing.enabled: "true"
+      application.security.type: basic
+      # spring.security.oauth2.client.registration.flowable-work.provider: flowable-work
+      # spring.security.oauth2.client.registration.flowable-work.client-id: global-sales-demo
+      # spring.security.oauth2.client.registration.flowable-work.client-secret:
+      # spring.security.oauth2.client.registration.flowable-work.authorization-grant-type: authorization_code
+      # spring.security.oauth2.client.registration.flowable-work.scope: openid,profile
+      # spring.security.oauth2.client.provider.flowable-work.issuer-uri: http://host.docker.internal:9095/auth/realms/global-sales-demo
+      # spring.security.oauth2.client.provider.flowable-work.user-name-attribute: preferred_username
+      # flowable.security.oauth2.post-logout-redirect-url: https://vigilant-fortnight-q7g9q4pq57f9xx5-443.github.dev/work
+      # flowable.security.oauth2.client.mapper.groups-attributes: https://someurl.com/claims/roles
+      # flowable.security.oauth2.client.mapper.load-authorities-from-identity-service: false
+      # FLOWABLE_SECURITY_OAUTH2_CLIENT_MAPPER_USER-DEFINITION-GROUP-MAPPINGS_0_GROUP-KEY: AIGI-ROLE-SUBMISSIONINTAKE-USER-DEV
+      # FLOWABLE_SECURITY_OAUTH2_CLIENT_MAPPER_USER-DEFINITION-GROUP-MAPPINGS_0_USER-DEFINITION-KEY: user-admin
+      # FLOWABLE_SECURITY_OAUTH2_CLIENT_MAPPER_USER-DEFINITION-GROUP-MAPPINGS_1_GROUP-KEY: USER_DEFINITION_KEY_user-admin
+      # FLOWABLE_SECURITY_OAUTH2_CLIENT_MAPPER_USER-DEFINITION-GROUP-MAPPINGS_1_USER-DEFINITION-KEY: user-default
+      # # resource server config
+      # spring.security.oauth2.resourceserver.jwt.issuer-uri: http://host.docker.internal:9095/auth/realms/global-sales-demo
+      # flowable.security.oauth2.resourceserver.jwt.principal-claim-name: preferred_username
+      # flowable.security.oauth2.resourceserver.mapper.groups-attributes: https://someurl.com/claims/roles
+      # flowable.security.oauth2.resourceserver.mapper.load-authorities-from-identity-service: false
+      # FLOWABLE_SECURITY_OAUTH2_RESOURCESERVER_MAPPER_USER-DEFINITION-GROUP-MAPPINGS_0_GROUP-KEY: AIGI-ROLE-SUBMISSIONINTAKE-USER-DEV
+      # FLOWABLE_SECURITY_OAUTH2_RESOURCESERVER_MAPPER_USER-DEFINITION-GROUP-MAPPINGS_0_USER-DEFINITION-KEY: user-admin
+      # FLOWABLE_SECURITY_OAUTH2_RESOURCESERVER_MAPPER_USER-DEFINITION-GROUP-MAPPINGS_1_GROUP-KEY: USER_DEFINITION_KEY_user-admin
+      # FLOWABLE_SECURITY_OAUTH2_RESOURCESERVER_MAPPER_USER-DEFINITION-GROUP-MAPPINGS_1_USER-DEFINITION-KEY: user-default
+      # extraVolumes:
+      #   - name: additional-classpath
+      #     hostPath:
+      #       path: /Users/aaron.bretz/.m2/repository/org/flowable/jobapplication/0.0.1-SNAPSHOT/
+      #       type: Directory
+      # extraVolumeMounts:
+      #   - name: additional-classpath
+      #     mountPath: /additional-classpath/
+      # initContainers:
+      #   - name: copy-jar
+      #     image: busybox
+      #     command: ["sh", "-c", "cp /jars/my-lib.jar /additional-classpath/"]
+      #     volumeMounts:
+      #       - name: additional-classpath
+      #         mountPath: /additonal-classpath
+      #       - name: jar-source
+      #         mountPath:
+      #     volumeMounts:
+      #       - name: additional-classpath
+      #         mountPath: /additional-classpath/
+      # extraImagePullSecrets: flw-docker-auth
+    storage:
+      provisioner: rancher.io/local-path
+      storageClass: standard
+  elasticsearch:
+    enabled: false
+    image:
+      repository: bitnamilegacy/elasticsearch
+      tag: 8.18.0
+    nodeGroup: master
+    # master:
+    #   resources:
+    #     requests:
+    #       cpu: 250m
+    #       memory: 1024Mi
+    #     limits:
+    #       cpu: 500m
+    #       memory: 2048Mi
+  design:
+    enabled: false
+  control:
+    enabled: false
+    image:
+      # tag: latest
+      tag: 2025.1.01
+    contextPath: /control
+    envVariables:
+      flowable.control.app.security.type: basic
+      server.contextPath: /control
+      flowable.control.app.cluster-config.authentication-type: basic
+      # flowable.control.app.security.oauth2.post-logout-redirect-url: https://vigilant-fortnight-q7g9q4pq57f9xx5-443.github.dev/control
+      # flowable.control.app.frontend.form-based-logout: true
+      # spring.security.oauth2.client.registration.keycloak.provider: keycloak
+      # spring.security.oauth2.client.registration.keycloak.client-id: global-sales-demo
+      # spring.security.oauth2.client.registration.keycloak.client-secret:
+      # spring.security.oauth2.client.registration.keycloak.scope: openid,profile
+      # spring.security.oauth2.client.registration.keycloak.authorization-grant-type: authorization_code
+      # spring.security.oauth2.client.provider.keycloak.issuer-uri: http://host.docker.internal:9095/auth/realms/global-sales-demo
+      # spring.security.oauth2.client.provider.keycloak.user-name-attribute: preferred_username
+      # flowable.control.app.security.oauth2.admin-authorities: AIGI-ROLE-SUBMISSIONINTAKE-USER-DEV
+      # flowable.control.app.security.oauth2.authorities-attributes: https://someurl.com/claims/roles
+      # flowable.control.app.security.oauth2.username-attribute: preferred_username
+  flowable:
+    dockerAuthSecret: flowable-flowable-regcred
+    database:
+      username: flowable
+  prometheus:
+    enabled: false
+    monitoring:
+      enabled: true
+      global:
+        namespace: flowable

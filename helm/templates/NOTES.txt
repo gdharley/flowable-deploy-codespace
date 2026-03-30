@@ -1,0 +1,10 @@
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm get values {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+To see deployment status, try:
+
+  $ kubectl get pods -n {{ .Release.Namespace }}
