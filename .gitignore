@@ -1,5 +1,3 @@
 helm/charts/
 helm/Chart.lock
 kubectl
-
-docker/keycloak/realm.json

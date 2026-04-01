@@ -10,12 +10,6 @@ flowable:
   #   domain: projects.flowable.io
   #   bodySize: "20m"
   #   ingressClass: external
-  openldap:
-    enabled: false
-  
-  keycloak:
-    enabled: false
-    
   postgres:
     enabled: false
     # primary:

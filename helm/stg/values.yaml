@@ -1,41 +1,6 @@
 global:
   security:
     allowInsecureImages: true
-openldap:
-  enabled: false
-  replicas: 1
-  service:
-    name: openldap
-    organization: Flowable Global Sales
-    domain: global-sales.flowable.com
-    adminPassword: test
-  storage:
-    provisioner: rancher.io/local-path
-    size: 3Gi
-    # Comment-out the following 2 lines in case you want bock instead of NFS
-    storageClass: standard
-    accessModes: ReadWriteOnce
-  image:
-    repository: osixia/openldap
-    pullPolicy:
-    tag: 1.5.0
-    #    secret: gitlab-regcred
-keycloak:
-  enabled: true
-  ingress:
-    enabled: true
-  replicas: 1
-  # domainName: login
-  host: supreme-robot-rjxpp4976gq3p96v-80.app.github.dev
-  database:
-    name: keycloak
-  service:
-    name: keycloak
-  image:
-    repository: "localhost:5001/keycloak-global-sales"
-    pullPolicy:
-    tag: "20.0.0"
-    #    secret: gitlab-regcred
 flowable:
   ingress:
     # Leave disabled to define our own ingress in templates/
@@ -48,7 +13,7 @@ flowable:
     service:
       name: postgres
     envVariables:
-      POSTGRES_MULTIPLE_DATABASES: "keycloak,internal"
+      POSTGRES_MULTIPLE_DATABASES: "internal"
     primary:
       extraEnvVars:
         - name: POSTGRESQL_MAX_CONNECTIONS
@@ -56,7 +21,7 @@ flowable:
   engage:
     enabled: false
   work:
-    enabled: false
+    enabled: true
     image:
       #    repository: localhost:5001/myflowable
       # tag: latest
@@ -73,7 +38,7 @@ flowable:
       flowable.inspect.enabled: "true"
       flowable.platform.enable-audit-log: "true"
       management.elastic.metrics.export.enabled: "false"
-      flowable.indexing.enabled: "true"
+      flowable.indexing.enabled: "false"
       application.security.type: basic
       # spring.security.oauth2.client.registration.flowable-work.provider: flowable-work
       # spring.security.oauth2.client.registration.flowable-work.client-id: global-sales-demo
@@ -139,7 +104,7 @@ flowable:
   design:
     enabled: false
   control:
-    enabled: false
+    enabled: true
     image:
       # tag: latest
       tag: 2025.1.01

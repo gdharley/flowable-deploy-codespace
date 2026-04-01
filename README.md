@@ -38,6 +38,8 @@ FLOWABLE_REPO_PASSWORD=<REPLACE_WITH_PASSWORD_ASSOCIATED_WITH_FLOWABLE_ARTIFACTO
 
 These will allow the action runner to have the necessary secrets for a Flowable deployments based on repo actions, in addition to our Codespace env where we are initially building the env.
 
+**Note**: The deployment scripts require these environment variables to be set beforehand. They will check for the variables and exit with an error if any are missing, rather than prompting for input.
+
 5) #### Create Codespace
 Return to the home page of your `flowable-deploy-template` repo (ex, https://github.com/<your-github-org>/flowable-deployment-template) and create a new Codespace for your new project by clicking the green "Code" dropdown button and selecting a Codespaces (instead of Local) and clicking the elipsis select "New with options":
 ![alt text](assets/codespaces.png)
@@ -54,20 +56,22 @@ Then clicking "TERMINAL on the pane that is brought up:
 ![alt text](assets/terminal.png)
 
 Once the terminal is open, execute:
-    #### Install brew (to install kind&k9s)
+<!--    #### Install brew (to install kind&k9s)
         `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
         `echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc`
         `eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)`
 
     #### Install kind and k9s
         `brew install kind derailed/k9s/k9s`
-
+-->
     ##### Run the create-env script
         `./create-env.sh --all`
 
         This creates 2 Kind (k8s) clusters named "qa", and "prod". Inside "qa", there is a flowable deployment in both the "dev" and "test" namespaces. Inside "prod" there is a flowable deployment in only the "stg" namespaces. 
         
         For simplicity and resource contraints, "prod" namespace/deployment will be ignored in this example. However, the eventual "prod" deployment should always be identical to the "stg" deployment, thus allowing us to ignore it.
+
+        To delete the environment and allow recreation: `./delete-env.sh --all`
 
 7) #### k9s observe:
      Get coffee and wait. It will take about 5 minutes for all the deployments to fully complete. After the script completes, it will bring up the terminal utility known as [k9s](https://k9scli.io/) with the following command:
@@ -111,18 +115,15 @@ Once the terminal is open, execute:
 9) Exit k9s (anytime) with `ctrl+c`
 
 ### Access dev deployment
-If you've started with the [Create Env](#create-env) steps, you might be wondering how to access the web UI's for the Flowable platform, and you would be correct in doing so. The easy button for us in this case will be to port-forward the service ports for the pods we care about (Work, Control, Design). Fortunately, I have a script for that.
+If you've started with the [Create Env](#create-env) steps, you might be wondering how to access the web UI's for the Flowable platform, and you would be correct in doing so. The easy button for us in this case will be to port-forward the ingress controller to access the Flowable applications.
 
 From the terminal:
 ```
 kubectl config use-context kind-qa
-bash -c "scripts/port-forward-flowable-ui.sh dev flowable"
+bash -c "scripts/port-forward-http.sh dev"
 ```
 
-This will forward web traffic from the container port to the local machine (GitHub Codespaces host in this case). In the same task pane as TERMINAL, go to PORTS and there should be new entries for ports:
-    - 8080: Flowable Work
-    - 8081: Flowable Design
-    - 8082: Flowable Control
+This will forward the ingress-nginx pod in the `dev` namespace to local port 8090. In the same task pane as TERMINAL, go to PORTS and there should be a new entry for port 8090. Click the globe icon to open the Flowable UI in your browser.
 
 For each Flowable container port (Work:8080, Design:8081, Control:8082), you will need to change the visibility to "public" by right clicking the port entry and changing port visibility to Public
     ![alt text](assets/port-vis.png)
@@ -142,6 +143,6 @@ You should now be greeted with a Flowable Login page:
 
 Return to the VSCode env and go to TERMINAL.
 
-Key `ctrl+c` to exit scripts/port-forward-flowable-ui.sh (if still running). Those services will now be unavailable on the web. Re-run the script any time to access the web interfaces of the Flowable deployment.
+Key `ctrl+c` to exit the port-forwarding script (if still running). The Flowable UI will no longer be accessible locally. Re-run the script any time to access the Flowable deployment.
 
 hi
