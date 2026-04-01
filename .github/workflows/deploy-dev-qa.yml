@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - dev
+      - simplified
       - main
       - release/*
     tags:
@@ -68,7 +69,7 @@ jobs:
   deploy-test:
     needs: setup
     runs-on: [self-hosted, qa] # only runs on a self-hosted runner with the 'qa' label
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && github.ref == 'refs/heads/dev' }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/simplified') }}
     steps:
       - uses: actions/checkout@v4
 

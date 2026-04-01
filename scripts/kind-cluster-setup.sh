@@ -140,13 +140,34 @@ data:
     help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 EOF
 
-# 6. Add ingress controller
+# 6. Check for cert-manager and install if not present
+if kubectl get deployment -n cert-manager cert-manager >/dev/null 2>&1; then
+  echo "cert-manager already installed, skipping installation."
+else
+  echo "Installing cert-manager for webhook certificates..."
+  helm repo add jetstack https://charts.jetstack.io 2>/dev/null || true
+  helm repo update
+  helm upgrade --install cert-manager jetstack/cert-manager \
+    --namespace cert-manager \
+    --create-namespace \
+    --set installCRDs=true \
+    --wait \
+    --timeout=120s
+  
+  # Wait for cert-manager deployments
+  kubectl -n cert-manager rollout status deploy/cert-manager --timeout=120s
+  kubectl -n cert-manager rollout status deploy/cert-manager-webhook --timeout=120s
+  kubectl -n cert-manager rollout status deploy/cert-manager-cainjector --timeout=120s
+  echo "✓ cert-manager installed successfully."
+fi
+
+# 7. Add ingress controller
 helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --set controller.kind=DaemonSet --set controller.hostPort.enabled=true --set controller.publishService.enabled=false --set controller.config.useForwardedHeaders=true --namespace ingress-nginx --create-namespace
 
 echo "Waiting for ingress controller webhook service to be ready"
 sleep 15
 
-# 7. Add github action runner
+# 8. Add github action runner
 echo
 echo "DISABLE_ARC value is $DISABLE_ARC".
 if [ $DISABLE_ARC != true ]; then

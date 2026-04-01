@@ -13,6 +13,10 @@ Ensure the following environment variables are set before running the scripts:
 
 These can be set as Codespace secrets or exported in your shell.
 
+## Additional dependencies
+
+- **Cert Manager**: Automatically installed during Codespace post-create setup. If running `kind-cluster-setup.sh` standalone, it will check for cert-manager and install it if missing.
+
 ## Scripts
 
 1. **Create Kind Cluster**:
@@ -27,29 +31,29 @@ These can be set as Codespace secrets or exported in your shell.
    ```
    Deploys Flowable using Helm. Requires the namespace to exist or will create it.
 
-3. **Manage Namespace Secrets**:
+3. **Manage Namespace and Secrets**:
    ```
-   ./scripts/manage-ns-secrets.sh <action> <namespace> [release-name] [license-file-path]
+   ./scripts/manage-ns-and-secrets.sh <action> <namespace> [release-name] [license-file-path]
    ```
-   Unified script for secret management. Actions: `create`, `delete`, `recreate`. Creates/deletes Flowable registry and license secrets.
+   Unified script for secret management. Actions: `create`, `delete`, `recreate`.
 
 4. **Create Namespace Secrets** (legacy):
    ```
    ./scripts/create-ns-secrets.sh <namespace> [release-name] [license-file-path]
    ```
-   Wrapper for `manage-ns-secrets.sh create`.
+   Wrapper for `manage-ns-and-secrets.sh create`.
 
-5. **Add GitHub Actions Runner**:
+6. **Add GitHub Actions Runner**:
    ```
    ./scripts/add-github-action-runner.sh [cluster-name]
    ```
    Sets up Actions Runner Controller (ARC) and deploys a GitHub Actions runner.
 
-6. **Delete Namespace Secrets** (legacy):
+7. **Delete Namespace Secrets** (legacy):
    ```
    ./scripts/delete-ns-secrets.sh <namespace> [release-name] [--all]
    ```
-   Wrapper for `manage-ns-secrets.sh delete`. Use `--all` to delete all secrets.
+   Wrapper for `manage-ns-and-secrets.sh delete`. Use `--all` to delete all secrets.
 
 7. **Port Forward HTTP**:
    ```
@@ -79,5 +83,7 @@ These can be set as Codespace secrets or exported in your shell.
 
 ## Notes
 
-- Scripts will check for required environment variables and exit with an error if missing.
+- Scripts will check for required environment variables and exit with an error if missing (fail-fast behavior).
+- `deploy-flowable-platform.sh` requires `FLOWABLE_REPO_USER`, `FLOWABLE_REPO_PASSWORD`, and `FLOWABLE_LICENSE_KEY` set before running.
+- `manage-ns-and-secrets.sh create` also requires `FLOWABLE_REPO_USER` and `FLOWABLE_REPO_PASSWORD` and will fail if missing.
 - No interactive prompting; all inputs must be provided via environment variables or arguments.

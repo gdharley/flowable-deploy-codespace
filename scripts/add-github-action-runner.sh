@@ -5,50 +5,31 @@ CLUSTER_NAME="${1:-kind}"
 PROJECT_DIR="${PROJECT_DIR:-$(pwd)}"
 SCRIPTS_DIR="${SCRIPTS_DIR:-$PROJECT_DIR/scripts}"
 
-echo
-echo
-echo "Setting up Cert Manager in Kubernetes"
-helm upgrade --install \
-  cert-manager oci://quay.io/jetstack/charts/cert-manager \
-  --version v1.18.2 \
-  --namespace cert-manager \
-  --create-namespace \
-  --set crds.enabled=true
-
-# Wait for cert-manager (optional but wise)
-kubectl -n cert-manager rollout status deploy/cert-manager --timeout=120s
-kubectl -n cert-manager rollout status deploy/cert-manager-webhook --timeout=120s
-kubectl -n cert-manager rollout status deploy/cert-manager-cainjector --timeout=120s
-
-# Namespaces
-kubectl get ns actions-runner-system >/dev/null 2>&1 || kubectl create ns actions-runner-system
-kubectl get ns arc-runners >/dev/null 2>&1 || kubectl create ns arc-runners
-
-# Check for ARC_TOKEN
+# Fail fast on missing token
 if [ -z "$ARC_TOKEN" ]; then
-  echo "ARC_TOKEN environment variable is not set. Please set it before running this script."
+  echo "Error: ARC_TOKEN is required for GitHub Actions Runner setup."
+  echo "Please export ARC_TOKEN in your environment before running this script."
   exit 1
 fi
 
-helm repo add actions-runner-controller https://actions-runner-controller.github.io/actions-runner-controller
+# Ensure required namespaces exist
+kubectl get namespace actions-runner-system >/dev/null 2>&1 || kubectl create namespace actions-runner-system
+kubectl get namespace ci >/dev/null 2>&1 || kubectl create namespace ci
+
+# Ensure Helm repo is available
+helm repo add actions-runner-controller https://actions-runner-controller.github.io/actions-runner-controller 2>/dev/null || true
 helm repo update
 
-# Let Helm create the secret & own it; pass the token via values
+# Install/upgrade the ARC controller and configure auth secret
 helm upgrade --install actions-runner-controller \
   actions-runner-controller/actions-runner-controller \
   --namespace actions-runner-system \
   --set authSecret.create=true \
-  --set authSecret.github_token="${ARC_TOKEN}" \
+  --set authSecret.github_token="$ARC_TOKEN"
 
-# ARC controller + webhook
 kubectl -n actions-runner-system rollout status deploy/actions-runner-controller --timeout=180s
 
-echo "Waiting for ARC controller webhook service to be ready"
-echo
-sleep 15
-
-
-echo "Applying GitHub Actions RunnerDeployment"
+# Ensure runner namespace + RBAC + runner deployment
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Namespace
@@ -111,5 +92,5 @@ spec:
       labels: [self-hosted, kind, arc, "${CLUSTER_NAME}"]
       serviceAccountName: gh-runner
 EOF
-echo
-echo
+
+echo "GitHub Actions runner deployment complete in cluster '$CLUSTER_NAME'."

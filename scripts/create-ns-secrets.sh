@@ -17,4 +17,4 @@ echo "Project directory is: $PROJECT_DIR"
 echo "Scripts directory is: $SCRIPTS_DIR"
 
 # Call the unified script
-"$SCRIPTS_DIR/manage-ns-secrets.sh" create "$1" "$RELEASE_NAME" "$LICENSE_FILE_PATH"
+"$SCRIPTS_DIR/manage-ns-and-secrets.sh" create "$1" "$RELEASE_NAME" "$LICENSE_FILE_PATH"

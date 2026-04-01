@@ -38,7 +38,11 @@ FLOWABLE_REPO_PASSWORD=<REPLACE_WITH_PASSWORD_ASSOCIATED_WITH_FLOWABLE_ARTIFACTO
 
 These will allow the action runner to have the necessary secrets for a Flowable deployments based on repo actions, in addition to our Codespace env where we are initially building the env.
 
-**Note**: The deployment scripts require these environment variables to be set beforehand. They will check for the variables and exit with an error if any are missing, rather than prompting for input.
+**Note**: The deployment scripts require these environment variables to be set beforehand. They will check for required vars and fail fast (exit immediately) if any are missing, rather than prompting for input.
+
+- `FLOWABLE_REPO_USER` (required)
+- `FLOWABLE_REPO_PASSWORD` (required)
+- `FLOWABLE_LICENSE_KEY` (required)
 
 5) #### Create Codespace
 Return to the home page of your `flowable-deploy-template` repo (ex, https://github.com/<your-github-org>/flowable-deployment-template) and create a new Codespace for your new project by clicking the green "Code" dropdown button and selecting a Codespaces (instead of Local) and clicking the elipsis select "New with options":
@@ -133,6 +137,7 @@ You can now access these ports over the open web by clicking the globe icon Forw
 
 You will receive the following warning page when first accessing these urls:
     ![alt text](assets/gh-warn.png)
+
 
     This is Github warning you to not trust any of these URL's to enter private data. You may click Continue.
 

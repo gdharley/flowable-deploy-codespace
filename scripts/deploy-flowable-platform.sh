@@ -21,17 +21,17 @@ echo
 echo "Project directory is: $PROJECT_DIR"
 
 
-# Check for required environment variables and advise if any are missing
-if [ -z "$FLOWABLE_REPO_USER" ]; then
-  echo "FLOWABLE_REPO_USER is not set."
-fi
-
-if [ -z "$FLOWABLE_REPO_PASSWORD" ]; then
-  echo "FLOWABLE_REPO_PASSWORD is not set."
-fi
-
-if [ -z "$FLOWABLE_LICENSE_KEY" ]; then
-  echo "FLOWABLE_LICENSE_KEY is not set."
+# Check for required environment variables and fail fast if any are missing
+if [ -z "$FLOWABLE_REPO_USER" ] || [ -z "$FLOWABLE_REPO_PASSWORD" ] || [ -z "$FLOWABLE_LICENSE_KEY" ]; then
+  echo
+  echo "Error: one or more required env vars are missing."
+  echo "Please set FLOWABLE_REPO_USER, FLOWABLE_REPO_PASSWORD and FLOWABLE_LICENSE_KEY."
+  echo
+  echo "Current values:"
+  echo "  FLOWABLE_REPO_USER=${FLOWABLE_REPO_USER:-<not set>}"
+  echo "  FLOWABLE_REPO_PASSWORD=$( [ -z \"$FLOWABLE_REPO_PASSWORD\" ] && echo '<not set>' || echo '*****' )"
+  echo "  FLOWABLE_LICENSE_KEY=$( [ -z \"$FLOWABLE_LICENSE_KEY\" ] && echo '<not set>' || echo '*****' )"
+  exit 1
 fi
 
 # Check if namespace exists, if not create it

@@ -19,7 +19,7 @@ SCRIPTS_DIR="${SCRIPTS_DIR:-$PROJECT_DIR/scripts}"
 
 # Call the unified script
 if [[ "$DELETE_ALL" == "--all" ]]; then
-    "$SCRIPTS_DIR/manage-ns-secrets.sh" delete "$DEPLOYMENT_NAMESPACE" "$RELEASE_NAME" --all
+    "$SCRIPTS_DIR/manage-ns-and-secrets.sh" delete "$DEPLOYMENT_NAMESPACE" "$RELEASE_NAME" --all
 else
-    "$SCRIPTS_DIR/manage-ns-secrets.sh" delete "$DEPLOYMENT_NAMESPACE" "$RELEASE_NAME"
+    "$SCRIPTS_DIR/manage-ns-and-secrets.sh" delete "$DEPLOYMENT_NAMESPACE" "$RELEASE_NAME"
 fi
