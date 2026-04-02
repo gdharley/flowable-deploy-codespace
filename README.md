@@ -123,11 +123,22 @@ If you've started with the [Create Env](#create-env) steps, you might be wonderi
 
 From the terminal:
 ```
-kubectl config use-context kind-qa
-bash -c "scripts/port-forward-http.sh dev"
+./scripts/port-forward-http.sh dev --context kind-qa --local-port 8090
 ```
 
-This will forward the ingress-nginx pod in the `dev` namespace to local port 8090. In the same task pane as TERMINAL, go to PORTS and there should be a new entry for port 8090. Click the globe icon to open the Flowable UI in your browser.
+This forwards `svc/ingress-nginx-controller` in the `ingress-nginx` namespace to local port `8090`. In the same task pane as TERMINAL, go to PORTS and there should be a new entry for that port. Click the globe icon to open the Flowable UI in your browser.
+
+Common examples:
+```
+./scripts/port-forward-http.sh dev --context kind-qa --local-port 8090
+./scripts/port-forward-http.sh test --context kind-qa --local-port 8090
+./scripts/port-forward-http.sh stg --context kind-prod --local-port 8091
+```
+
+Common paths:
+- `dev`: `/work`, `/control`, `/design`
+- `test`: `/test/work`, `/test/control`, `/test/design`
+- `stg`: `/work`, `/control`
 
 For each Flowable container port (Work:8080, Design:8081, Control:8082), you will need to change the visibility to "public" by right clicking the port entry and changing port visibility to Public
     ![alt text](assets/port-vis.png)

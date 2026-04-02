@@ -63,9 +63,18 @@ These can be set as Codespace secrets or exported in your shell.
 
 9. **Port Forward HTTP**:
    ```
-   ./scripts/port-forward-http.sh <namespace> [release-name]
+   ./scripts/port-forward-http.sh <namespace> [release-name] [--context <kube-context>] [--local-port <port>] [--ingress-namespace <namespace>]
    ```
-   Port forwards the ingress-nginx controller in the specified namespace to local port 8090 for accessing the Flowable UI.
+   Port forwards `svc/ingress-nginx-controller` to a local port (default `8090`) for browser access. Examples:
+   ```
+   ./scripts/port-forward-http.sh dev --context kind-qa --local-port 8090
+   ./scripts/port-forward-http.sh test --context kind-qa --local-port 8090
+   ./scripts/port-forward-http.sh stg --context kind-prod --local-port 8091
+   ```
+   Paths to open:
+   - `dev`: `/work`, `/control`, `/design`
+   - `test`: `/test/work`, `/test/control`, `/test/design`
+   - `stg`: `/work`, `/control`
 
 ## Environment Scripts
 
