@@ -2,6 +2,8 @@ flowable:
   ingress:
   #     # Enable/disbale the ingress configuration for the Helm chart.
     enabled: false
+  customIngress:
+    pathPrefix: test
   #   # Define if https should be used to access the service urls (this is highly suggested)
   #   tls: true
   #   # Ingress proxy settings in case of custom frontend (CORS)

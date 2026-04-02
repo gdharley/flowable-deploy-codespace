@@ -57,7 +57,7 @@ rules:
     resources: ["pods", "configmaps", "secrets", "services", "deployments", "replicasets", "namespaces", "statefulsets", "daemonsets", "jobs", "cronjobs", "ingresses", "networkpolicies", "pods", "pods/log", "pods/exec", "serviceaccounts", "persistentvolumeclaims"]
     verbs: ["get","list","watch","create","update","patch","delete"]
   - apiGroups: ["networking.k8s.io"]
-    resources: ["networkpolicies"]
+    resources: ["networkpolicies", "ingresses", "ingressclasses"]
     verbs: ["get","list","watch","create","update","patch","delete"]
   - apiGroups: ["policy"]
     resources: ["poddisruptionbudgets"]

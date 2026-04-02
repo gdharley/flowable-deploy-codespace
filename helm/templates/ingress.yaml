@@ -1,4 +1,91 @@
 {{- if not .Values.flowable.ingress.enabled }}
+{{- $customIngress := default (dict) .Values.flowable.customIngress }}
+{{- $host := default "" $customIngress.host }}
+{{- $rawPrefix := default "" $customIngress.pathPrefix }}
+{{- $prefix := trimSuffix "/" (trimPrefix "/" $rawPrefix) }}
+{{- $hasPrefix := ne $prefix "" }}
+{{- if $hasPrefix }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flowable-ingress-design
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"       # leave HTTPS to GitHub
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /design/$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - {{- if $host }}
+    host: {{ $host | quote }}
+    {{- else }}
+    host:  # must be blank to use CodeSpaces app URL
+    {{- end }}
+    http:
+      paths:
+      - path: /{{ $prefix }}/design(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: flowable-design
+            port:
+              name: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flowable-ingress-work
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"       # leave HTTPS to GitHub
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /work/$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - {{- if $host }}
+    host: {{ $host | quote }}
+    {{- else }}
+    host:  # must be blank to use CodeSpaces app URL
+    {{- end }}
+    http:
+      paths:
+      - path: /{{ $prefix }}/work(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: flowable-work
+            port:
+              name: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flowable-ingress-control
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"       # leave HTTPS to GitHub
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /control/$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - {{- if $host }}
+    host: {{ $host | quote }}
+    {{- else }}
+    host:  # must be blank to use CodeSpaces app URL
+    {{- end }}
+    http:
+      paths:
+      - path: /{{ $prefix }}/control(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: flowable-control
+            port:
+              name: http
+{{- else }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -9,7 +96,11 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host:  # must be blank to use CodeSpaces app URL
+  - {{- if $host }}
+    host: {{ $host | quote }}
+    {{- else }}
+    host:  # must be blank to use CodeSpaces app URL
+    {{- end }}
     http:
       paths:
       - path: /design
@@ -33,4 +124,5 @@ spec:
             name: flowable-control
             port:
               name: http
+{{- end }}
 {{- end }}
