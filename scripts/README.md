@@ -55,7 +55,13 @@ These can be set as Codespace secrets or exported in your shell.
    ```
    Wrapper for `manage-ns-and-secrets.sh delete`. Use `--all` to delete all secrets.
 
-7. **Port Forward HTTP**:
+8. **Deregister GitHub Action Runners**:
+   ```
+   ./scripts/deregister-github-action-runners.sh <cluster-name>
+   ```
+   De-registers matching repository self-hosted runners with labels `self-hosted`, `arc`, and `<cluster-name>`.
+
+9. **Port Forward HTTP**:
    ```
    ./scripts/port-forward-http.sh <namespace> [release-name]
    ```
@@ -78,8 +84,9 @@ These can be set as Codespace secrets or exported in your shell.
 - **Delete Environment**:
   ```
   ./delete-env.sh --all
+  ./delete-env.sh
   ```
-  Deletes Kind clusters and cleans up associated resources (registry, kubeconfig). For `--all`, removes "qa" and "prod" clusters completely, allowing immediate recreation.
+  Deletes Kind clusters and cleans up associated resources (registry, kubeconfig). Before cluster teardown, it also de-registers matching GitHub self-hosted runners (labels: `self-hosted`, `arc`, and the target cluster name) when `ARC_TOKEN` (or `GITHUB_TOKEN`) is available. With no args, defaults to `--all`, removing both "qa" and "prod" clusters completely for immediate recreation.
 
 ## Notes
 

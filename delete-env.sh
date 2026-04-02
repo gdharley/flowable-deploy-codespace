@@ -1,6 +1,19 @@
+#!/bin/bash
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPTS_DIR="${SCRIPTS_DIR:-$PROJECT_DIR/scripts}"
+
+# Default to --all when no arguments are provided
+if [[ $# -eq 0 ]]; then
+    echo "No arguments provided; defaulting to --all"
+    set -- --all
+fi
+
 delete_cluster() {
     local cluster_name="$1"
     echo "Deleting kind cluster '$cluster_name'..."
+
+    "$SCRIPTS_DIR/deregister-github-action-runners.sh" "$cluster_name"
     
     # Switch to the cluster context if it exists
     if kubectl config get-contexts "kind-$cluster_name" >/dev/null 2>&1; then

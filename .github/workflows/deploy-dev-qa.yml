@@ -21,12 +21,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Install kubectl
-        run: |
-          curl -LO "https://cdn.dl.k8s.io/release/$(curl -L -s https://cdn.dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          # Make the binary executable
-          chmod +x kubectl
-          # Move the binary to a directory in your system's PATH
-          sudo mv ./kubectl /usr/local/bin/kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.30.0'
       - name: Set kubeconfig output
         id: set-kubeconfig
         run: echo "kubeconfig-path=$HOME/.kube/config" >> $GITHUB_OUTPUT
